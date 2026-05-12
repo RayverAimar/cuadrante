@@ -1,48 +1,45 @@
-import { useState } from 'react'
-import { Header } from './components/Header'
-import { RosterGrid } from './components/RosterGrid'
-import { ViolationsPanel } from './components/ViolationsPanel'
-import { EmployeeModal } from './components/modals/EmployeeModal'
-import { EmployeeListModal } from './components/modals/EmployeeListModal'
-import { RulesModal } from './components/modals/RulesModal'
-import { HelpModal } from './components/modals/HelpModal'
+import { useEffect } from 'react'
+import { Cuadrante } from './components/Cuadrante'
+import { Login } from './components/Login'
+import { Toasts } from './components/ui/Toasts'
+import { useAuth } from './lib/useAuth'
+import { useRosterStore } from './store/useRosterStore'
 
 export default function App() {
-  const [addEmpOpen, setAddEmpOpen] = useState(false)
-  const [empListOpen, setEmpListOpen] = useState(false)
-  const [rulesOpen, setRulesOpen] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(false)
+  const { loading, user, allowed } = useAuth()
+  const loadAll = useRosterStore((s) => s.loadAll)
+  const dataLoaded = useRosterStore((s) => s.loaded)
+  const dataLoading = useRosterStore((s) => s.loading)
+  const dataError = useRosterStore((s) => s.error)
+
+  useEffect(() => {
+    if (allowed && !dataLoaded && !dataLoading) loadAll()
+  }, [allowed, dataLoaded, dataLoading, loadAll])
+
+  if (loading) {
+    return <FullScreenMessage>Cargando…</FullScreenMessage>
+  }
+  if (!user) return <Login user={null} />
+  if (allowed === false) return <Login user={user} notAllowed />
+  if (allowed === null) {
+    return <FullScreenMessage>Verificando acceso…</FullScreenMessage>
+  }
+  if (!dataLoaded) {
+    return <FullScreenMessage>{dataError ? `Error: ${dataError}` : 'Cargando datos…'}</FullScreenMessage>
+  }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
-      {/* Header — sticky, no-print */}
-      <div className="no-print">
-        <Header
-          onAddEmployee={() => setAddEmpOpen(true)}
-          onEmployeeList={() => setEmpListOpen(true)}
-          onRules={() => setRulesOpen(true)}
-          onHelp={() => setHelpOpen(true)}
-        />
-      </div>
+    <>
+      <Cuadrante />
+      <Toasts />
+    </>
+  )
+}
 
-      {/* Main area */}
-      <div className="flex flex-1 overflow-hidden print-full">
-        {/* Roster table (scrollable) */}
-        <main className="flex-1 overflow-auto p-5">
-          <RosterGrid />
-        </main>
-
-        {/* Violations sidebar — no-print */}
-        <div className="no-print">
-          <ViolationsPanel />
-        </div>
-      </div>
-
-      {/* Modals */}
-      <EmployeeModal open={addEmpOpen} onClose={() => setAddEmpOpen(false)} />
-      <EmployeeListModal open={empListOpen} onClose={() => setEmpListOpen(false)} />
-      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+function FullScreenMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center' }}>
+      {children}
     </div>
   )
 }

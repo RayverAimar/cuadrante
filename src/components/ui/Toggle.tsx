@@ -1,24 +1,36 @@
 interface ToggleProps {
   checked: boolean
   onChange: (v: boolean) => void
-  label?: string
+  ariaLabel?: string
 }
 
-export function Toggle({ checked, onChange, label }: ToggleProps) {
+export function Toggle({ checked, onChange, ariaLabel }: ToggleProps) {
   return (
     <button
+      onClick={() => onChange(!checked)}
       role="switch"
       aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-        checked ? 'bg-blue-600' : 'bg-gray-300'
-      }`}
-      aria-label={label}
+      aria-label={ariaLabel}
+      style={{
+        width: 44,
+        height: 24,
+        padding: 2,
+        background: checked ? 'var(--ink)' : 'var(--rule-2)',
+        border: 'none',
+        cursor: 'pointer',
+        position: 'relative',
+        transition: 'background .15s ease',
+      }}
     >
       <span
-        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-6' : 'translate-x-1'
-        }`}
+        style={{
+          display: 'block',
+          width: 20,
+          height: 20,
+          background: 'var(--paper)',
+          transform: `translateX(${checked ? 20 : 0}px)`,
+          transition: 'transform .15s cubic-bezier(.2,.7,.2,1)',
+        }}
       />
     </button>
   )

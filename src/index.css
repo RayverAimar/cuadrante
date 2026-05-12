@@ -1,36 +1,428 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-@layer base {
-  * {
-    box-sizing: border-box;
-  }
+:root {
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --serif: 'Fraunces', ui-serif, Georgia, serif;
 
-  html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+  /* light theme — paper */
+  --ink: #0a0a0a;
+  --ink-2: #2a2a2a;
+  --ink-3: #6b6b6b;
+  --ink-4: #9a9a9a;
+  --rule: #e6e4df;
+  --rule-2: #d6d3cc;
+  --paper: #f4f1ea;
+  --paper-2: #ebe7dd;
+  --card: #ffffff;
+  --accent: #ff4500;
+  --accent-soft: #ffe7dc;
+  --grid-line: rgba(10, 10, 10, 0.06);
 
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+  /* shift palette */
+  --M-bg: #dbe7f7; --M-fg: #1a3a8c;
+  --T-bg: #f8e6c1; --T-fg: #6e3f00;
+  --N-bg: #d9d3ee; --N-fg: #2c1a72;
+  --V-bg: #c8eed9; --V-fg: #0a4a2c;
+  --L-bg: #f6d8e4; --L-fg: #6b1438;
+  --D-bg: #ebe7dd; --D-fg: #4a4642;
+
+  --ok: #1f7a3a;
+  --warn: #b76b00;
+  --err: #c1271a;
+}
+
+html[data-theme='dark'] {
+  --ink: #f5f1e8;
+  --ink-2: #d6d2c7;
+  --ink-3: #8a877d;
+  --ink-4: #5a5750;
+  --rule: #2a2722;
+  --rule-2: #3a362e;
+  --paper: #131210;
+  --paper-2: #1a1815;
+  --card: #1c1a16;
+  --accent: #ff5a1f;
+  --accent-soft: #2a1810;
+  --grid-line: rgba(245, 241, 232, 0.06);
+
+  --M-bg: #1a2540; --M-fg: #b9cef0;
+  --T-bg: #3a2a10; --T-fg: #f0d29a;
+  --N-bg: #241c40; --N-fg: #c9bff0;
+  --V-bg: #103022; --V-fg: #9ee4be;
+  --L-bg: #3a1a26; --L-fg: #f0b8cc;
+  --D-bg: #232017; --D-fg: #aaa49a;
+}
+
+/* Base resets — formerly inside @layer base when Tailwind was loaded. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01', 'cv11';
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+button { font-family: inherit; }
+::selection { background: var(--ink); color: var(--paper); }
+#root { min-height: 100vh; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule-2); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+
+/* Layout helpers */
+.cdr-app-body {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.cdr-app-body > .cdr-grid-wrap { flex: 1; min-height: 0; }
+.cdr-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.cdr-topbar > :first-child  { justify-self: start; }
+.cdr-topbar > :last-child   { justify-self: end; }
+.cdr-filterbar {
+  padding: 10px 24px;
+}
+
+@media (max-width: 1024px) {
+  .cdr-app-body {
+    padding: 0 16px 16px;
   }
 }
 
+@media (max-width: 720px) {
+  .cdr-topbar {
+    grid-template-columns: 1fr auto;
+    padding: 14px;
+    gap: 8px;
+  }
+  .cdr-topbar > :nth-child(2) {
+    order: 3;
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .cdr-app-body { padding: 0 10px 16px; gap: 12px; }
+  .cdr-action-bar {
+    left: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+    flex-wrap: wrap;
+    max-width: calc(100vw - 16px);
+  }
+  .cdr-action-bar > :first-child { flex: 1 1 100%; }
+  .cdr-landing-hero-grid { grid-template-columns: 1fr !important; }
+  .cdr-landing-hero { padding: 40px 20px 48px !important; border-right: none !important; }
+  .cdr-landing-hero h1 { font-size: 13vw !important; line-height: 0.95 !important; }
+  .cdr-hide-mobile { display: none !important; }
+  .cdr-menu-hero { grid-template-columns: 1fr !important; }
+  .cdr-menu-hero > :first-child { border-right: none !important; padding: 40px 20px !important; }
+  .cdr-menu-hero > :last-child { padding: 40px 20px !important; }
+  .cdr-menu-tiles { grid-template-columns: 1fr !important; }
+  .cdr-menu-tiles > * { border-right: none !important; border-bottom: 1px solid var(--rule); }
+}
+
+@media (min-width: 1600px) {
+  .cdr-app-body {
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 0 32px 32px;
+  }
+  /* Keep header & filter bar full-bleed (so border-bottom spans the viewport),
+     but constrain their inner content to match the body width. */
+  .cdr-topbar,
+  .cdr-filterbar {
+    padding-left: calc((100% - 1700px) / 2 + 32px);
+    padding-right: calc((100% - 1700px) / 2 + 32px);
+  }
+}
+
+/* Only visible in print preview */
+.cdr-print-only { display: none; }
+.cdr-individuals-print { display: none; }
+
+/* Named pages — individual and year print also use landscape, but we keep
+   them addressable in case the orientation ever needs to differ per flow. */
 @media print {
-  .no-print { display: none !important; }
-  body { background: white !important; }
-  .print-full { overflow: visible !important; height: auto !important; }
+  @page { size: A4 landscape; margin: 8mm; }
+  body.cdr-printing > * { display: none !important; }
+  body.cdr-printing #root { display: block !important; }
+  body.cdr-printing header,
+  body.cdr-printing aside,
+  body.cdr-printing .cdr-no-print,
+  body.cdr-printing [data-cdr-export],
+  body.cdr-printing [role='tooltip'] { display: none !important; }
+  body.cdr-printing .cdr-print-only { display: block !important; }
+  body.cdr-printing { background: white !important; }
+  body.cdr-printing * { box-shadow: none !important; }
+
+  /* Fit grid to A4 landscape: shrink cells + name column */
+  body.cdr-printing .cdr-app-body {
+    padding: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    grid-template-columns: 1fr !important;
+    display: block !important;
+  }
+  body.cdr-printing table { width: 100% !important; table-layout: fixed !important; font-size: 10px !important; }
+  body.cdr-printing thead th { padding: 4px 1px !important; font-size: 9px !important; }
+  body.cdr-printing thead th:first-child { width: 18% !important; }
+  body.cdr-printing tbody td { height: 22px !important; padding: 0 !important; font-size: 10px !important; }
+  body.cdr-printing tbody td:first-child { padding: 0 8px !important; font-size: 10px !important; }
+  body.cdr-printing tbody td:first-child span { font-size: 10px !important; }
+  /* Hide the scrollbox: allow the table to span the page */
+  body.cdr-printing div[style*="overflow: auto"],
+  body.cdr-printing div[style*="overflow:auto"] {
+    overflow: visible !important;
+    max-height: none !important;
+    border: none !important;
+  }
+}
+
+/* Print: per-employee schedules (one page per employee, A4 landscape).
+   Portaled to <body>, so we hide every body child EXCEPT the print container. */
+.cdr-year-print { display: none; }
+@media print {
+  body.cdr-printing-individuals > *:not(.cdr-individuals-print) { display: none !important; }
+  body.cdr-printing-individuals .cdr-individuals-print { display: block !important; }
+  body.cdr-printing-individuals { background: white !important; }
+  body.cdr-printing-year > *:not(.cdr-year-print) { display: none !important; }
+  body.cdr-printing-year .cdr-year-print { display: block !important; }
+  body.cdr-printing-year { background: white !important; }
+}
+.cdr-emp-page {
+  page-break-after: always;
+  break-after: page;
+  padding: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+.cdr-emp-page:last-child { page-break-after: auto; }
+/* Centered title sits above the per-employee header so it's the visual
+   anchor of every printed page. */
+.cdr-emp-page__title {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-3);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.cdr-emp-page__hd {
+  display: flex; align-items: baseline; justify-content: space-between;
+  border-bottom: 1px solid var(--ink); padding-bottom: 6px; margin-bottom: 10px;
+}
+.cdr-emp-page__name { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+.cdr-emp-page__role { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--ink-3); text-transform: uppercase; margin-top: 2px; }
+.cdr-emp-page__month { font-family: var(--serif); font-size: 18px; font-weight: 500; }
+.cdr-emp-page__cal {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+  border: 1px solid var(--ink); border-right: none; border-bottom: none;
+}
+.cdr-emp-page__dow {
+  background: var(--paper-2);
+  padding: 4px 4px; text-align: center;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+  color: var(--ink-3);
+  border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+}
+.cdr-emp-page__cell {
+  position: relative; min-height: 52px; padding: 4px 6px;
+  border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  background: var(--paper);
+}
+.cdr-emp-page__cell--empty { background: var(--paper-2); }
+.cdr-emp-page__day { position: absolute; top: 3px; left: 5px; font-family: var(--mono); font-size: 9px; color: var(--ink-3); }
+/* Full shift word — landscape gives ~38mm per cell, comfortably fits "Vacaciones". */
+.cdr-emp-page__shift { font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: -0.01em; text-align: center; }
+/* Holiday + note: same red triangle shape used in the on-screen grid, so the
+   two views match. Holiday lives top-right, note top-left (shifted right of
+   the day number) to avoid collision. */
+.cdr-emp-page__hol,
+.cdr-emp-page__note-tri {
+  position: absolute; width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-top: 6px solid var(--accent, #c1271a);
+  pointer-events: none;
+}
+.cdr-emp-page__hol { top: 0; right: 0; }
+.cdr-emp-page__note-tri {
+  top: 0; right: 0;
+  border-top-color: var(--ink);
+  border-left-width: 6px; border-top-width: 6px;
+  /* Stack: if both holiday and note coexist, note becomes a small black
+     square overlaid by the red holiday triangle. */
+}
+.cdr-emp-page__cell .cdr-emp-page__note-tri:not(:last-child) { display: none; }
+.cdr-emp-page__notes {
+  margin-top: 10px; padding-top: 6px; border-top: 1px dashed var(--rule);
+  page-break-inside: avoid;
+}
+.cdr-emp-page__notes-hd {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em;
+  color: var(--ink-3); margin-bottom: 4px;
+}
+.cdr-emp-page__notes-list {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; row-gap: 2px;
+}
+.cdr-emp-page__notes-list li {
+  display: grid; grid-template-columns: 48px 1fr; gap: 6px;
+  font-size: 10px; line-height: 1.35;
+}
+.cdr-emp-page__notes-day { font-family: var(--mono); color: var(--ink-3); }
+.cdr-emp-page__notes-text { color: var(--ink); }
+.cdr-emp-page__ft {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--ink);
+}
+.cdr-emp-page__legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 10px; }
+.cdr-emp-page__legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.cdr-emp-page__legend-item strong { font-family: var(--mono); }
+.cdr-emp-page__chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+}
+.cdr-emp-page__totals { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; display: inline-flex; align-items: baseline; gap: 6px; }
+.cdr-emp-page__totals strong { font-size: 18px; font-family: var(--serif); }
+
+/* Holidays footer — listed in every printed view that shows holiday markers
+   on cells. Tiny red triangle next to each item mirrors the cell marker. */
+.cdr-hols-footer { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--rule); page-break-inside: avoid; }
+.cdr-hols-footer__hd { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; color: var(--ink-3); margin-bottom: 4px; }
+.cdr-hols-footer__list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; row-gap: 2px; }
+.cdr-hols-footer__list li { display: grid; grid-template-columns: 10px 48px 1fr; gap: 6px; font-size: 10px; line-height: 1.35; align-items: center; }
+.cdr-hols-footer__mark {
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-bottom: 5px solid var(--accent, #c1271a);
+}
+.cdr-hols-footer__day { font-family: var(--mono); color: var(--ink-3); }
+.cdr-hols-footer__name { color: var(--ink); }
+.cdr-hols-footer__tag { font-family: var(--mono); font-size: 9px; color: var(--ink-3); letter-spacing: 0.08em; }
+/* Year-print tweak: smaller and tighter to fit alongside the table. */
+.cdr-year-page__hols { margin-top: 6px; }
+.cdr-year-page__hols .cdr-hols-footer__list { grid-template-columns: 1fr 1fr 1fr; }
+.cdr-year-page__hols .cdr-hols-footer__list li { font-size: 9px; }
+
+/* Monthly notes footer (also used by year print under each month).
+   Hidden on screen via .cdr-print-only. */
+.cdr-notes-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ink); page-break-inside: avoid; }
+.cdr-notes-footer__hd { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; color: var(--ink-3); margin-bottom: 4px; }
+.cdr-notes-footer__list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 2px; }
+.cdr-notes-footer__list li { display: grid; grid-template-columns: 44px 110px 1fr; gap: 6px; font-size: 9px; line-height: 1.35; }
+.cdr-notes-footer__day { font-family: var(--mono); color: #555; }
+.cdr-notes-footer__name { font-weight: 600; }
+.cdr-notes-footer__text { color: var(--ink); }
+
+/* Year print — one A4 landscape page per month, compact table identical
+   in spirit to the monthly export. */
+.cdr-year-page { page-break-after: always; break-after: page; font-family: var(--sans); color: var(--ink); }
+.cdr-year-page:last-child { page-break-after: auto; }
+.cdr-year-page__hd { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 8px; }
+.cdr-year-page__eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; color: #555; }
+.cdr-year-page__title { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
+.cdr-year-page__meta { font-family: var(--mono); font-size: 9px; color: #555; }
+.cdr-year-page__tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: var(--mono); font-size: 10px; }
+.cdr-year-page__tbl th, .cdr-year-page__tbl td {
+  border: 1px solid var(--rule); text-align: center; height: 20px; padding: 0;
+}
+.cdr-year-page__tbl thead th { background: #f5f3ee; font-size: 9px; font-weight: 600; color: #444; }
+.cdr-year-page__tbl thead th.is-wknd { background: #ecebe5; }
+.cdr-year-page__tbl thead th.is-hol { background: #f7dcd7; color: #8a1a10; border-top: 2px solid #c1271a; }
+.cdr-year-page__dow { font-size: 7px; opacity: 0.7; font-weight: 400; }
+.cdr-year-page__tbl th:first-child, .cdr-year-page__tbl td:first-child { text-align: left; padding: 0 6px; width: 14%; }
+.cdr-year-page__name { font-family: var(--sans); font-size: 10px; font-weight: 500; }
+.cdr-year-page__cov td { background: #f5f3ee; font-weight: 600; }
+.cdr-year-page__note-tri {
+  display: inline-block; position: absolute; top: 0; right: 0;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-top: 5px solid var(--accent, #c1271a);
+}
+.cdr-year-page__tbl tbody td { position: relative; }
+
+/* Animations */
+@keyframes cdr-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes cdr-pop  { from { opacity: 0; transform: translateY(8px) scale(0.98) } to { opacity: 1; transform: none } }
+@keyframes cdr-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px var(--err); }
+  50%      { box-shadow: inset 0 0 0 2px var(--err); }
+}
+
+/* Dropdown menu item — used by OverflowMenu, UserMenu, ExportMenu */
+.cdr-menuitem {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 10px 14px;
+  text-align: left;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--ink); font: inherit; font-size: 13px; font-family: var(--sans);
+  transition: background 0.1s ease;
+}
+.cdr-menuitem:hover { background: var(--paper-2); }
+.cdr-menuitem + .cdr-menuitem { border-top: 1px solid var(--rule); }
+
+/* Shared button + input */
+.cdr-iconbtn {
+  width: 28px; height: 28px;
+  display: inline-grid; place-items: center;
+  background: transparent; color: var(--ink-2);
+  border: 1px solid var(--rule);
+  cursor: pointer; transition: all 0.12s ease;
+}
+.cdr-iconbtn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.cdr-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; font-family: var(--sans); font-size: 13px; font-weight: 500;
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--rule); cursor: pointer;
+  transition: all 0.12s ease; letter-spacing: -0.005em;
+}
+.cdr-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.cdr-btn--primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.cdr-btn--primary:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cdr-btn--danger:hover { background: var(--err); border-color: var(--err); color: #fff; }
+.cdr-btn--ghost { border-color: transparent; }
+.cdr-btn--ghost:hover { border-color: var(--ink); }
+
+.cdr-input {
+  width: 100%; padding: 10px 12px;
+  background: var(--paper-2); color: var(--ink);
+  border: 1px solid var(--rule);
+  font-family: var(--sans); font-size: 14px;
+  outline: none; transition: border-color 0.12s, background 0.12s;
+}
+.cdr-input:focus { border-color: var(--ink); background: var(--card); }
+
+.cdr-label {
+  display: block; font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
+  margin-bottom: 6px;
+}
+
+.cdr-eyebrow {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-3);
 }

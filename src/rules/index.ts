@@ -1,174 +1,150 @@
-import type { Rule, RuleViolation, ValidationContext } from '../types'
-import { isWeekend } from '../utils/date'
-import { SHIFT_DEFS, SHIFT_GROUPS } from '../constants/shifts'
-
-// ─── RULES ENGINE ─────────────────────────────────────────────────────────────
-// To add a new rule: push an object that implements Rule to this array.
-// Each rule's validate() receives a ValidationContext and returns RuleViolation[].
-// The UI in RulesModal picks up paramDefs automatically — no other registration needed.
+import type { Rule, RuleIssue, Employee, EmployeeMonth } from '../types'
+import { getDaysInMonth, isWeekend } from '../utils/date'
 
 export const DEFAULT_RULES: Rule[] = [
   {
-    id: 'max_vac_per_month',
-    name: 'Límite de licencias/vacaciones',
-    description:
-      'Un empleado no puede superar N días entre vacaciones (V) y licencias (L) en el mes.',
-    enabled: true,
-    params: { maxDays: 5 },
-    paramDefs: [{ key: 'maxDays', label: 'Días máximos por mes', min: 1, max: 31 }],
-    validate({ employees, getAssignment, daysInMonth }: ValidationContext): RuleViolation[] {
-      const violations: RuleViolation[] = []
-      for (const emp of employees) {
-        const usedDays: number[] = []
-        for (let d = 1; d <= daysInMonth; d++) {
-          const a = getAssignment(emp.id, d)
-          if (a === 'V' || a === 'L') usedDays.push(d)
-        }
-        if (usedDays.length > this.params.maxDays) {
-          violations.push({
-            level: 'error',
-            employeeId: emp.id,
-            days: usedDays,
-            message: `${emp.name} tiene ${usedDays.length} días de licencia/vacaciones (máx: ${this.params.maxDays}).`,
-          })
-        }
-      }
-      return violations
-    },
-  },
-
-  {
-    id: 'max_consecutive_vac',
-    name: 'Días consecutivos de vacaciones/licencia',
-    description: 'No se permiten más de N días consecutivos de vacaciones o licencia.',
-    enabled: true,
-    params: { maxConsecutive: 2 },
-    paramDefs: [{ key: 'maxConsecutive', label: 'Días consecutivos máximos', min: 1, max: 30 }],
-    validate({ employees, getAssignment, daysInMonth }: ValidationContext): RuleViolation[] {
-      const violations: RuleViolation[] = []
-      for (const emp of employees) {
-        let streak = 0
-        let streakDays: number[] = []
-        for (let d = 1; d <= daysInMonth; d++) {
-          const a = getAssignment(emp.id, d)
-          if (a === 'V' || a === 'L') {
-            streak++
-            streakDays.push(d)
-            if (streak > this.params.maxConsecutive) {
-              violations.push({
-                level: 'error',
-                employeeId: emp.id,
-                days: [...streakDays],
-                message: `${emp.name}: ${streak} días consecutivos de licencia/vacaciones a partir del día ${streakDays[0]} (máx: ${this.params.maxConsecutive}).`,
-              })
-              streak = 0
-              streakDays = []
-            }
-          } else {
-            streak = 0
-            streakDays = []
-          }
-        }
-      }
-      return violations
-    },
-  },
-
-  {
-    id: 'min_coverage',
+    id: 'minPerShift',
     name: 'Cobertura mínima por turno',
-    description: 'Cada turno debe tener al menos N empleados activos en días hábiles.',
+    description: 'Cada turno (M/T/N) debe tener al menos N empleados en días hábiles.',
+    param: 'mín. empleados',
+    value: 2,
     enabled: true,
-    params: { minPerShift: 1 },
-    paramDefs: [{ key: 'minPerShift', label: 'Empleados mínimos por turno (días hábiles)', min: 1, max: 10 }],
-    validate({ employees, getAssignment, daysInMonth, year, month }: ValidationContext): RuleViolation[] {
-      const violations: RuleViolation[] = []
-      for (let d = 1; d <= daysInMonth; d++) {
-        if (isWeekend(year, month, d)) continue
-        for (const sk of SHIFT_GROUPS) {
-          const inGroup = employees.filter((e) => e.defaultShift === sk)
-          if (inGroup.length === 0) continue
-          const working = inGroup.filter((e) => {
-            const a = getAssignment(e.id, d)
-            return a === null || a === sk
-          }).length
-          if (working < this.params.minPerShift) {
-            violations.push({
-              level: 'warning',
-              days: [d],
-              message: `Día ${d} — Turno ${SHIFT_DEFS[sk].label}: ${working} empleado(s) activo(s) (mín: ${this.params.minPerShift}).`,
-            })
-          }
-        }
-      }
-      return violations
-    },
   },
-
   {
-    id: 'rest_after_night',
-    name: 'Descanso obligatorio post-turno noche',
-    description: 'Un empleado de turno noche no debe tener turno laboral el día siguiente.',
+    id: 'maxConsecutive',
+    name: 'Días consecutivos de vacaciones/licencia',
+    description: 'Un empleado no puede tener más de N días seguidos de V o L.',
+    param: 'máx. días',
+    value: 14,
     enabled: true,
-    params: {},
-    paramDefs: [],
-    validate({ employees, getAssignment, daysInMonth }: ValidationContext): RuleViolation[] {
-      const violations: RuleViolation[] = []
-      for (const emp of employees) {
-        for (let d = 1; d < daysInMonth; d++) {
-          const today = getAssignment(emp.id, d) ?? emp.defaultShift
-          const tomorrow = getAssignment(emp.id, d + 1)
-          if (today === 'N' && (tomorrow === 'M' || tomorrow === 'T' || tomorrow === 'N')) {
-            violations.push({
-              level: 'warning',
-              employeeId: emp.id,
-              days: [d, d + 1],
-              message: `${emp.name}: turno noche el día ${d} seguido de turno laboral el día ${d + 1} (se recomienda descanso).`,
-            })
-          }
-        }
-      }
-      return violations
-    },
   },
-
   {
-    id: 'vac_on_weekend',
+    id: 'maxLeavePerMonth',
+    name: 'Límite de licencias/vacaciones',
+    description: 'Un empleado no puede superar N días entre V y L en el mes.',
+    param: 'máx. días',
+    value: 10,
+    enabled: true,
+  },
+  {
+    id: 'restAfterNight',
+    name: 'Descanso post-turno noche',
+    description: 'Tras un turno N, el día siguiente no debe ser M ni T.',
+    param: '—',
+    value: null,
+    enabled: true,
+  },
+  {
+    id: 'weekendLeave',
     name: 'Licencia en fin de semana',
-    description: 'Aviso cuando se asignan vacaciones o licencia en sábado/domingo (no descuentan días hábiles).',
+    description: 'Aviso si V/L cae en sábado o domingo (no descuenta días hábiles).',
+    param: '—',
+    value: null,
     enabled: false,
-    params: {},
-    paramDefs: [],
-    validate({ employees, getAssignment, daysInMonth, year, month }: ValidationContext): RuleViolation[] {
-      const violations: RuleViolation[] = []
-      for (const emp of employees) {
-        for (let d = 1; d <= daysInMonth; d++) {
-          if (!isWeekend(year, month, d)) continue
-          const a = getAssignment(emp.id, d)
-          if (a === 'V' || a === 'L') {
-            violations.push({
-              level: 'warning',
-              employeeId: emp.id,
-              days: [d],
-              message: `${emp.name}: licencia asignada el día ${d} (fin de semana — no descuenta días hábiles).`,
-            })
-          }
-        }
-      }
-      return violations
-    },
   },
 ]
 
-export function runValidations(
+export function validate(
+  employees: Employee[],
+  assignments: EmployeeMonth,
   rules: Rule[],
-  ctx: ValidationContext,
-): RuleViolation[] {
-  const all: RuleViolation[] = []
-  for (const rule of rules) {
-    if (!rule.enabled) continue
-    const violations = rule.validate(ctx)
-    violations.forEach((v) => all.push({ ...v, ruleId: rule.id, ruleName: rule.name }))
+  year: number,
+  month: number,
+): RuleIssue[] {
+  const issues: RuleIssue[] = []
+  const dim = getDaysInMonth(year, month)
+  const enabled: Record<string, Rule | undefined> = Object.fromEntries(
+    rules.map((r) => [r.id, r]),
+  )
+
+  if (enabled.minPerShift?.enabled) {
+    const min = enabled.minPerShift.value ?? 0
+    for (let d = 1; d <= dim; d++) {
+      if (isWeekend(year, month, d)) continue
+      ;(['M', 'T', 'N'] as const).forEach((sh) => {
+        const count = employees.filter((e) => assignments[e.id]?.[d] === sh).length
+        if (count < min) {
+          issues.push({
+            level: 'error',
+            empId: null,
+            day: d,
+            ruleId: 'minPerShift',
+            msg: `Día ${d} · turno ${sh}: ${count} activos (mín ${min})`,
+          })
+        }
+      })
+    }
   }
-  return all
+
+  employees.forEach((emp) => {
+    const a = assignments[emp.id] || {}
+
+    if (enabled.restAfterNight?.enabled) {
+      for (let d = 1; d < dim; d++) {
+        if (a[d] === 'N' && (a[d + 1] === 'M' || a[d + 1] === 'T')) {
+          issues.push({
+            level: 'warn',
+            empId: emp.id,
+            day: d + 1,
+            ruleId: 'restAfterNight',
+            msg: `${emp.name}: turno noche el ${d} seguido de ${a[d + 1]} el ${d + 1}`,
+          })
+        }
+      }
+    }
+
+    if (enabled.maxConsecutive?.enabled) {
+      const max = enabled.maxConsecutive.value ?? 0
+      let run = 0
+      let runStart = 0
+      for (let d = 1; d <= dim; d++) {
+        const c = a[d]
+        if (c === 'V' || c === 'L') {
+          if (run === 0) runStart = d
+          run++
+          if (run > max) {
+            issues.push({
+              level: 'error',
+              empId: emp.id,
+              day: d,
+              ruleId: 'maxConsecutive',
+              msg: `${emp.name}: ${run} días consecutivos V/L desde ${runStart} (máx ${max})`,
+            })
+          }
+        } else {
+          run = 0
+        }
+      }
+    }
+
+    if (enabled.maxLeavePerMonth?.enabled) {
+      const max = enabled.maxLeavePerMonth.value ?? 0
+      const total = Object.values(a).filter((c) => c === 'V' || c === 'L').length
+      if (total > max) {
+        issues.push({
+          level: 'error',
+          empId: emp.id,
+          day: null,
+          ruleId: 'maxLeavePerMonth',
+          msg: `${emp.name}: ${total} días de V/L este mes (máx ${max})`,
+        })
+      }
+    }
+
+    if (enabled.weekendLeave?.enabled) {
+      for (let d = 1; d <= dim; d++) {
+        if ((a[d] === 'V' || a[d] === 'L') && isWeekend(year, month, d)) {
+          issues.push({
+            level: 'warn',
+            empId: emp.id,
+            day: d,
+            ruleId: 'weekendLeave',
+            msg: `${emp.name}: ${a[d]} el ${d} (fin de semana)`,
+          })
+        }
+      }
+    }
+  })
+
+  return issues
 }

@@ -1,64 +1,52 @@
 export type ShiftCode = 'M' | 'T' | 'N' | 'V' | 'L' | 'D'
-export type DefaultShift = 'M' | 'T' | 'N'
+export type DefaultShift = 'M' | 'T' | 'N' | 'D'
 
 export interface ShiftDef {
+  code: ShiftCode
   label: string
   shortLabel: string
-  color: string    // hex for text
-  bg: string       // hex for background
-  border: string   // hex for border
-  time?: string
-  icon: string
-  description: string
+  hours: string
+  kind: 'work' | 'leave' | 'rest'
+  bg: string
+  fg: string
 }
 
 export interface Employee {
   id: string
   name: string
   role: string
-  defaultShift: DefaultShift
+  base: DefaultShift
   avatarColor: string
+  vacationBalance: number
+  archivedAt: string | null
 }
 
 // assignments[`${year}-${month}`][employeeId][day] = ShiftCode
-export type MonthMap = Record<string, Record<number, ShiftCode>>
-export type Assignments = Record<string, MonthMap>
+export type EmployeeMonth = Record<string, Record<number, ShiftCode>>
+export type Assignments = Record<string, EmployeeMonth>
 
-export interface RuleViolation {
-  level: 'error' | 'warning'
-  employeeId?: string
-  days?: number[]
-  message: string
-  ruleId?: string
-  ruleName?: string
-}
-
-export interface RuleParamDef {
-  key: string
-  label: string
-  min: number
-  max: number
-}
-
-export interface ValidationContext {
-  year: number
-  month: number
-  employees: Employee[]
-  getAssignment: (empId: string, day: number) => ShiftCode | null
-  daysInMonth: number
-}
+// notes[`${year}-${month}`][employeeId][day] = "note text"
+export type EmployeeMonthNotes = Record<string, Record<number, string>>
+export type Notes = Record<string, EmployeeMonthNotes>
 
 export interface Rule {
   id: string
   name: string
   description: string
+  param: string
+  value: number | null
   enabled: boolean
-  params: Record<string, number>
-  paramDefs: RuleParamDef[]
-  validate: (ctx: ValidationContext) => RuleViolation[]
 }
 
-export interface RuleOverride {
-  enabled: boolean
-  params: Record<string, number>
+export interface RuleIssue {
+  level: 'error' | 'warn'
+  empId: string | null
+  day: number | null
+  ruleId: string
+  msg: string
+}
+
+export interface Holiday {
+  name: string
+  kind: 'national' | 'local'
 }

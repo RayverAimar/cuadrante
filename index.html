@@ -1,16 +1,45 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/cuadrante/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="%BASE_URL%favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Cuadrante — Planilla de turnos interactiva. Gestión de guardias, vacaciones y licencias con validación de reglas en tiempo real." />
+    <meta name="theme-color" content="#f4f1ea" />
+    <meta name="description" content="Cuadrante — Planilla mensual de turnos para equipos rotativos. Planifica el mes en minutos, valida reglas en vivo, manda PDFs listos al equipo." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://rayveraimar.github.io/cuadrante/" />
+    <meta property="og:title" content="Cuadrante · Planilla de Turnos" />
+    <meta property="og:description" content="Planifica el mes en minutos, valida reglas en vivo, y manda PDFs listos al equipo. Para administradores que hoy abren Excel cada fin de mes." />
+    <meta property="og:image" content="https://rayveraimar.github.io/cuadrante/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Cuadrante — la planilla en su sitio. Vista previa de una grilla mensual con turnos M/T/N." />
+    <meta property="og:locale" content="es_PE" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://rayveraimar.github.io/cuadrante/" />
+    <meta name="twitter:title" content="Cuadrante · Planilla de Turnos" />
+    <meta name="twitter:description" content="Planifica el mes en minutos, valida reglas en vivo, y manda PDFs listos al equipo." />
+    <meta name="twitter:image" content="https://rayveraimar.github.io/cuadrante/og-image.jpg" />
+
     <title>Cuadrante · Planilla de Turnos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <script>
+      // Restore theme before paint to avoid flash
+      try {
+        var saved = localStorage.getItem('cuadrante:theme');
+        document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+      } catch (e) {}
+    </script>
   </head>
-  <body class="bg-slate-50">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

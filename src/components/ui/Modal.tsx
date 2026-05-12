@@ -1,68 +1,92 @@
-import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
-import { Fragment, type ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { type ReactNode, useEffect } from 'react'
+import { Icon } from './Icon'
 
 interface ModalProps {
   open: boolean
   onClose: () => void
-  title: ReactNode
+  title: string
   children: ReactNode
-  size?: 'sm' | 'md' | 'lg'
+  width?: number
 }
 
-const sizeClass = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-}
+export function Modal({ open, onClose, title, children, width = 560 }: ModalProps) {
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
-export function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
+  if (!open) return null
   return (
-    <Transition show={open} as={Fragment}>
-      <Dialog onClose={onClose} className="relative z-50">
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-200"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-150"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+    <div
+      data-cdr-modal-root
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 500,
+        background: 'rgba(10,10,10,0.45)',
+        display: 'grid',
+        placeItems: 'center',
+        padding: 24,
+        animation: 'cdr-fade .15s ease',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxWidth: width,
+          maxHeight: '88vh',
+          overflow: 'auto',
+          background: 'var(--card)',
+          color: 'var(--ink)',
+          border: '1px solid var(--rule)',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+          animation: 'cdr-pop .18s cubic-bezier(.2,.7,.2,1)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            padding: '20px 24px 12px',
+            borderBottom: '1px solid var(--rule)',
+          }}
         >
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              as={Fragment}
-              enter="ease-out duration-200"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-150"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-3)',
+                marginBottom: 4,
+              }}
             >
-              <DialogPanel
-                className={`w-full ${sizeClass[size]} rounded-2xl bg-white p-6 shadow-2xl`}
-              >
-                <div className="flex items-center justify-between mb-5">
-                  <DialogTitle className="text-lg font-bold text-gray-900">
-                    {title}
-                  </DialogTitle>
-                  <button
-                    onClick={onClose}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-                {children}
-              </DialogPanel>
-            </TransitionChild>
+              Cuadrante / Diálogo
+            </div>
+            <h2
+              style={{
+                margin: 0,
+                fontFamily: 'var(--sans)',
+                fontWeight: 600,
+                fontSize: 22,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {title}
+            </h2>
           </div>
+          <button onClick={onClose} className="cdr-iconbtn" aria-label="Cerrar">
+            <Icon name="x" size={14} />
+          </button>
         </div>
-      </Dialog>
-    </Transition>
+        <div style={{ padding: '20px 24px 24px' }}>{children}</div>
+      </div>
+    </div>
   )
 }
