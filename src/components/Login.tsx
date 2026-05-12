@@ -131,7 +131,7 @@ export function Login({ user, notAllowed }: Props) {
         <div style={{ letterSpacing: '0.12em' }}>© {new Date().getFullYear()} · CUADRANTE</div>
         <div style={{ textAlign: 'right' }}>
           <a
-            href="https://www.linkedin.com/in/ray-emece"
+            href="https://rayveraimar.github.io"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -145,7 +145,7 @@ export function Login({ user, notAllowed }: Props) {
             onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--ink)' }}
             onMouseLeave={(e) => { e.currentTarget.style.color = '' }}
           >
-            <LinkedInIcon />
+            <PortfolioIcon />
             CONTACTO
           </a>
         </div>
@@ -233,10 +233,13 @@ function PeruFlag() {
   )
 }
 
-function LinkedInIcon() {
+function PortfolioIcon() {
+  // External-link glyph — signals "this opens an off-site portfolio".
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.05-1.86-3.05-1.86 0-2.15 1.45-2.15 2.95v5.67H9.32V9h3.42v1.56h.05c.48-.9 1.64-1.86 3.37-1.86 3.6 0 4.27 2.37 4.27 5.46v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
     </svg>
   )
 }

@@ -240,4 +240,4 @@ And `Settings → Pages → Source: GitHub Actions`.
 
 Internal use. Built in Peru 🇵🇪.
 
-Contact: [LinkedIn — Ray Emece](https://www.linkedin.com/in/ray-emece).
+Contact: [rayveraimar.github.io](https://rayveraimar.github.io).
